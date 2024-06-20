@@ -11,6 +11,7 @@ plugins {
 
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.binary.compatibility.validator)
     alias(libs.plugins.dokka)
     alias(libs.plugins.maven.publish)
 }
@@ -68,6 +69,10 @@ testing {
             useKotlinTest(libs.versions.kotlin.test)
         }
     }
+}
+
+tasks.apiBuild {
+    inputJar.value(tasks.jar.flatMap { it.archiveFile })
 }
 
 tasks.jar {
