@@ -19,9 +19,12 @@ group = "io.portone"
 description = "JVM library for integrating PortOne payment infrastructure."
 
 val githubRef = System.getenv("GITHUB_REF")
-if (githubRef != null && githubRef.startsWith("refs/tags/v")) {
-    version = githubRef.substring("refs/tags/v".length)
-}
+version =
+    if (githubRef != null && githubRef.startsWith("refs/tags/v")) {
+        githubRef.substring("refs/tags/v".length)
+    } else {
+        "0.0.1-SNAPSHOT"
+    }
 
 tasks.withType<KotlinJvmCompile>().configureEach {
     jvmTargetValidationMode = JvmTargetValidationMode.ERROR
