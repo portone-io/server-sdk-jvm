@@ -30,7 +30,6 @@ public final class io/portone/sdk/server/PortOneApi : java/io/Closeable {
 	public static synthetic fun getAllPaymentsByCursor$default (Lio/portone/sdk/server/PortOneApi;Ljava/time/Instant;Ljava/time/Instant;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 	public final fun getAllPaymentsByCursorSuspend (Ljava/time/Instant;Ljava/time/Instant;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getAllPaymentsByCursorSuspend$default (Lio/portone/sdk/server/PortOneApi;Ljava/time/Instant;Ljava/time/Instant;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun getApiSecret ()Ljava/lang/String;
 	public final fun getBillingKeyInfo (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 	public final fun getBillingKeyInfoSuspend (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getBillingKeyInfos (Lio/portone/sdk/server/schemas/PageInput;Lio/portone/sdk/server/schemas/BillingKeySortInput;Lio/portone/sdk/server/schemas/BillingKeyFilterInput;)Ljava/util/concurrent/CompletableFuture;
@@ -55,7 +54,6 @@ public final class io/portone/sdk/server/PortOneApi : java/io/Closeable {
 	public static synthetic fun getPayments$default (Lio/portone/sdk/server/PortOneApi;Lio/portone/sdk/server/schemas/PageInput;Lio/portone/sdk/server/schemas/PaymentFilterInput;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 	public final fun getPaymentsSuspend (Lio/portone/sdk/server/schemas/PageInput;Lio/portone/sdk/server/schemas/PaymentFilterInput;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getPaymentsSuspend$default (Lio/portone/sdk/server/PortOneApi;Lio/portone/sdk/server/schemas/PageInput;Lio/portone/sdk/server/schemas/PaymentFilterInput;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun getStoreId ()Ljava/lang/String;
 	public final fun issueBillingKey (Lio/portone/sdk/server/schemas/InstantBillingKeyPaymentMethodInput;Ljava/lang/String;Ljava/lang/String;Lio/portone/sdk/server/schemas/CustomerInput;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 	public static synthetic fun issueBillingKey$default (Lio/portone/sdk/server/PortOneApi;Lio/portone/sdk/server/schemas/InstantBillingKeyPaymentMethodInput;Ljava/lang/String;Ljava/lang/String;Lio/portone/sdk/server/schemas/CustomerInput;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/util/List;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 	public final fun issueBillingKeySuspend (Lio/portone/sdk/server/schemas/InstantBillingKeyPaymentMethodInput;Ljava/lang/String;Ljava/lang/String;Lio/portone/sdk/server/schemas/CustomerInput;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

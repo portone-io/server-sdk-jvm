@@ -5,10 +5,10 @@ Subject: [PATCH] refine return types
 
 
 diff --git a/io/portone/sdk/server/PortOneApi.kt b/io/portone/sdk/server/PortOneApi.kt
-index 97479a6..6bf961c 100644
+index e383bf8..b6ad68b 100644
 --- a/io/portone/sdk/server/PortOneApi.kt
 +++ b/io/portone/sdk/server/PortOneApi.kt
-@@ -29,6 +29,7 @@ import io.portone.sdk.server.schemas.BillingKeyNotFoundException
+@@ -30,6 +30,7 @@ import io.portone.sdk.server.schemas.BillingKeyNotFoundException
  import io.portone.sdk.server.schemas.BillingKeyNotIssuedError
  import io.portone.sdk.server.schemas.BillingKeyNotIssuedException
  import io.portone.sdk.server.schemas.BillingKeyPaymentInput
@@ -16,7 +16,7 @@ index 97479a6..6bf961c 100644
  import io.portone.sdk.server.schemas.BillingKeySortInput
  import io.portone.sdk.server.schemas.CancelAmountExceedsCancellableAmountError
  import io.portone.sdk.server.schemas.CancelAmountExceedsCancellableAmountException
-@@ -53,6 +54,7 @@ import io.portone.sdk.server.schemas.CashReceiptNotFoundError
+@@ -54,6 +55,7 @@ import io.portone.sdk.server.schemas.CashReceiptNotFoundError
  import io.portone.sdk.server.schemas.CashReceiptNotFoundException
  import io.portone.sdk.server.schemas.CashReceiptNotIssuedError
  import io.portone.sdk.server.schemas.CashReceiptNotIssuedException
@@ -24,7 +24,7 @@ index 97479a6..6bf961c 100644
  import io.portone.sdk.server.schemas.CashReceiptType
  import io.portone.sdk.server.schemas.ChannelNotFoundError
  import io.portone.sdk.server.schemas.ChannelNotFoundException
-@@ -111,6 +113,7 @@ import io.portone.sdk.server.schemas.IdentityVerificationOperator
+@@ -112,6 +114,7 @@ import io.portone.sdk.server.schemas.IdentityVerificationOperator
  import io.portone.sdk.server.schemas.InstantBillingKeyPaymentMethodInput
  import io.portone.sdk.server.schemas.InstantPaymentInput
  import io.portone.sdk.server.schemas.InstantPaymentMethodInput
@@ -32,7 +32,7 @@ index 97479a6..6bf961c 100644
  import io.portone.sdk.server.schemas.InvalidRequestError
  import io.portone.sdk.server.schemas.InvalidRequestException
  import io.portone.sdk.server.schemas.IssueBillingKeyBody
-@@ -132,6 +135,7 @@ import io.portone.sdk.server.schemas.Payment
+@@ -133,6 +136,7 @@ import io.portone.sdk.server.schemas.Payment
  import io.portone.sdk.server.schemas.PaymentAlreadyCancelledError
  import io.portone.sdk.server.schemas.PaymentAlreadyCancelledException
  import io.portone.sdk.server.schemas.PaymentAmountInput
@@ -40,7 +40,7 @@ index 97479a6..6bf961c 100644
  import io.portone.sdk.server.schemas.PaymentEscrowReceiverInput
  import io.portone.sdk.server.schemas.PaymentEscrowSenderInput
  import io.portone.sdk.server.schemas.PaymentFilterInput
-@@ -155,6 +159,8 @@ import io.portone.sdk.server.schemas.PaymentScheduleFilterInput
+@@ -156,6 +160,8 @@ import io.portone.sdk.server.schemas.PaymentScheduleFilterInput
  import io.portone.sdk.server.schemas.PaymentScheduleNotFoundError
  import io.portone.sdk.server.schemas.PaymentScheduleNotFoundException
  import io.portone.sdk.server.schemas.PaymentScheduleSortInput
@@ -49,7 +49,7 @@ index 97479a6..6bf961c 100644
  import io.portone.sdk.server.schemas.PgProviderError
  import io.portone.sdk.server.schemas.PgProviderException
  import io.portone.sdk.server.schemas.PreRegisterPaymentBody
-@@ -185,6 +191,7 @@ import io.portone.sdk.server.schemas.SumOfPartsExceedsTotalAmountError
+@@ -186,6 +192,7 @@ import io.portone.sdk.server.schemas.SumOfPartsExceedsTotalAmountError
  import io.portone.sdk.server.schemas.SumOfPartsExceedsTotalAmountException
  import io.portone.sdk.server.schemas.UnauthorizedError
  import io.portone.sdk.server.schemas.UnauthorizedException
@@ -57,7 +57,7 @@ index 97479a6..6bf961c 100644
  import io.portone.sdk.server.schemas.WebhookNotFoundError
  import io.portone.sdk.server.schemas.WebhookNotFoundException
  import java.io.Closeable
-@@ -221,16 +228,15 @@ public class PortOneApi(
+@@ -222,16 +229,15 @@ public class PortOneApi(
     * 주어진 아이디에 대응되는 본인인증 내역을 조회합니다.
     *
     * @throws ForbiddenError 요청이 거절된 경우
@@ -76,7 +76,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.get("https://api.portone.io/identity-verifications") {
        url {
          appendPathSegments(identityVerificationId)
-@@ -252,8 +258,7 @@ public class PortOneApi(
+@@ -254,8 +260,7 @@ public class PortOneApi(
        }
        when (httpBodyDecoded) {
          is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
@@ -86,7 +86,7 @@ index 97479a6..6bf961c 100644
          is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
          is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
        }
-@@ -272,7 +277,7 @@ public class PortOneApi(
+@@ -274,7 +279,7 @@ public class PortOneApi(
     */
    @JvmName("getIdentityVerification")
    public fun getIdentityVerificationFuture(identityVerificationId: String):
@@ -95,7 +95,7 @@ index 97479a6..6bf961c 100644
        getIdentityVerification(identityVerificationId) }
  
    /**
-@@ -377,11 +382,11 @@ public class PortOneApi(
+@@ -380,11 +385,11 @@ public class PortOneApi(
     *
     * @param identityVerificationId 본인인증 아이디
     * @param otp OTP (One-Time Password) - SMS 방식에서만 사용됩니다.
@@ -109,7 +109,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.post("https://api.portone.io/identity-verifications") {
        url {
          appendPathSegments(identityVerificationId, "confirm")
-@@ -418,7 +423,7 @@ public class PortOneApi(
+@@ -422,7 +427,7 @@ public class PortOneApi(
      }
      val httpBody = httpResponse.body<String>()
      return try {
@@ -118,7 +118,7 @@ index 97479a6..6bf961c 100644
      }
      catch (_: Exception) {
        throw UnrecognizedException("Unrecognized API response: $httpBody")
-@@ -430,7 +435,7 @@ public class PortOneApi(
+@@ -434,7 +439,7 @@ public class PortOneApi(
     */
    @JvmName("confirmIdentityVerification")
    public fun confirmIdentityVerificationFuture(identityVerificationId: String, otp: String? = null):
@@ -127,7 +127,7 @@ index 97479a6..6bf961c 100644
        confirmIdentityVerification(identityVerificationId, otp) }
  
    /**
-@@ -564,17 +569,16 @@ public class PortOneApi(
+@@ -570,17 +575,16 @@ public class PortOneApi(
     *
     * 주어진 빌링키에 대응되는 빌링키 정보를 조회합니다.
     *
@@ -147,7 +147,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.get("https://api.portone.io/billing-keys") {
        url {
          appendPathSegments(billingKey)
-@@ -595,8 +599,7 @@ public class PortOneApi(
+@@ -602,8 +606,7 @@ public class PortOneApi(
          throw UnrecognizedException("Unrecognized API error: $httpBody")
        }
        when (httpBodyDecoded) {
@@ -157,7 +157,7 @@ index 97479a6..6bf961c 100644
          is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
          is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
          is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
-@@ -615,7 +618,7 @@ public class PortOneApi(
+@@ -622,7 +625,7 @@ public class PortOneApi(
     * @suppress
     */
    @JvmName("getBillingKeyInfo")
@@ -166,7 +166,7 @@ index 97479a6..6bf961c 100644
        GlobalScope.future { getBillingKeyInfo(billingKey) }
  
    /**
-@@ -853,17 +856,16 @@ public class PortOneApi(
+@@ -863,17 +866,16 @@ public class PortOneApi(
     *
     * 주어진 결제 아이디에 대응되는 현금 영수증 내역을 조회합니다.
     *
@@ -186,7 +186,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.get("https://api.portone.io/payments") {
        url {
          appendPathSegments(paymentId, "cash-receipt")
-@@ -884,8 +886,7 @@ public class PortOneApi(
+@@ -895,8 +897,7 @@ public class PortOneApi(
          throw UnrecognizedException("Unrecognized API error: $httpBody")
        }
        when (httpBodyDecoded) {
@@ -196,7 +196,7 @@ index 97479a6..6bf961c 100644
          is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
          is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
          is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
-@@ -904,7 +905,7 @@ public class PortOneApi(
+@@ -915,7 +916,7 @@ public class PortOneApi(
     * @suppress
     */
    @JvmName("getCashReceiptByPaymentId")
@@ -205,7 +205,7 @@ index 97479a6..6bf961c 100644
        GlobalScope.future { getCashReceiptByPaymentId(paymentId) }
  
    /**
-@@ -914,15 +915,14 @@ public class PortOneApi(
+@@ -925,15 +926,14 @@ public class PortOneApi(
     *
     * @throws ForbiddenError 요청이 거절된 경우
     * @throws InvalidRequestError 요청된 입력 정보가 유효하지 않은 경우 - 허가되지 않은 값, 올바르지 않은 형식의 요청 등이 모두 해당됩니다.
@@ -223,7 +223,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.get("https://api.portone.io/payments") {
        url {
          appendPathSegments(paymentId)
-@@ -945,7 +945,7 @@ public class PortOneApi(
+@@ -957,7 +957,7 @@ public class PortOneApi(
        when (httpBodyDecoded) {
          is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
          is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
@@ -232,7 +232,7 @@ index 97479a6..6bf961c 100644
          is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
        }
      }
-@@ -962,7 +962,7 @@ public class PortOneApi(
+@@ -974,7 +974,7 @@ public class PortOneApi(
     * @suppress
     */
    @JvmName("getPayment")
@@ -241,7 +241,7 @@ index 97479a6..6bf961c 100644
        getPayment(paymentId) }
  
    /**
-@@ -1101,15 +1101,14 @@ public class PortOneApi(
+@@ -1115,15 +1115,14 @@ public class PortOneApi(
     *
     * @throws ForbiddenError 요청이 거절된 경우
     * @throws InvalidRequestError 요청된 입력 정보가 유효하지 않은 경우 - 허가되지 않은 값, 올바르지 않은 형식의 요청 등이 모두 해당됩니다.
@@ -259,7 +259,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.get("https://api.portone.io/payment-schedules") {
        url {
          appendPathSegments(paymentScheduleId)
-@@ -1132,8 +1131,7 @@ public class PortOneApi(
+@@ -1147,8 +1146,7 @@ public class PortOneApi(
        when (httpBodyDecoded) {
          is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
          is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
@@ -269,7 +269,7 @@ index 97479a6..6bf961c 100644
          is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
        }
      }
-@@ -1150,7 +1148,7 @@ public class PortOneApi(
+@@ -1165,7 +1163,7 @@ public class PortOneApi(
     * @suppress
     */
    @JvmName("getPaymentSchedule")
@@ -278,7 +278,7 @@ index 97479a6..6bf961c 100644
        = GlobalScope.future { getPaymentSchedule(paymentScheduleId) }
  
    /**
-@@ -1315,14 +1313,14 @@ public class PortOneApi(
+@@ -1332,14 +1330,14 @@ public class PortOneApi(
     * @param paymentId 결제 건 아이디
     * @param payment 빌링키 결제 입력 정보
     * @param timeToPay 결제 예정 시점
@@ -295,7 +295,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.post("https://api.portone.io/payments") {
        url {
          appendPathSegments(paymentId, "schedule")
-@@ -1361,7 +1359,7 @@ public class PortOneApi(
+@@ -1379,7 +1377,7 @@ public class PortOneApi(
      }
      val httpBody = httpResponse.body<String>()
      return try {
@@ -304,7 +304,7 @@ index 97479a6..6bf961c 100644
      }
      catch (_: Exception) {
        throw UnrecognizedException("Unrecognized API response: $httpBody")
-@@ -1376,7 +1374,7 @@ public class PortOneApi(
+@@ -1394,7 +1392,7 @@ public class PortOneApi(
      paymentId: String,
      payment: BillingKeyPaymentInput,
      timeToPay: Instant,
@@ -313,7 +313,7 @@ index 97479a6..6bf961c 100644
        createPaymentSchedule(paymentId, payment, timeToPay) }
  
    /**
-@@ -1409,7 +1407,7 @@ public class PortOneApi(
+@@ -1427,7 +1425,7 @@ public class PortOneApi(
     * @param currentCancellableAmount 결제 건의 취소 가능 잔액 - 본 취소 요청 이전의 취소 가능 잔액으로써, 값을 입력하면 잔액이 일치하는 경우에만
     * 취소가 진행됩니다. 값을 입력하지 않으면 별도의 검증 처리를 수행하지 않습니다.
     * @param refundAccount 환불 계좌 - 계좌 환불일 경우 입력합니다. 계좌 환불이 필요한 경우는 가상계좌 환불, 휴대폰 익월 환불 등이 있습니다.
@@ -322,7 +322,7 @@ index 97479a6..6bf961c 100644
     */
    @JvmName("cancelPaymentSuspend")
    public suspend fun cancelPayment(
-@@ -1421,7 +1419,7 @@ public class PortOneApi(
+@@ -1439,7 +1437,7 @@ public class PortOneApi(
      requester: CancelRequester? = null,
      currentCancellableAmount: Long? = null,
      refundAccount: CancelPaymentBodyRefundAccount? = null,
@@ -331,7 +331,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.post("https://api.portone.io/payments") {
        url {
          appendPathSegments(paymentId, "cancel")
-@@ -1472,7 +1470,7 @@ public class PortOneApi(
+@@ -1491,7 +1489,7 @@ public class PortOneApi(
      }
      val httpBody = httpResponse.body<String>()
      return try {
@@ -340,7 +340,7 @@ index 97479a6..6bf961c 100644
      }
      catch (_: Exception) {
        throw UnrecognizedException("Unrecognized API response: $httpBody")
-@@ -1492,7 +1490,7 @@ public class PortOneApi(
+@@ -1511,7 +1509,7 @@ public class PortOneApi(
      requester: CancelRequester? = null,
      currentCancellableAmount: Long? = null,
      refundAccount: CancelPaymentBodyRefundAccount? = null,
@@ -349,7 +349,7 @@ index 97479a6..6bf961c 100644
        amount, taxFreeAmount, vatAmount, reason, requester, currentCancellableAmount, refundAccount)
        }
  
-@@ -1536,7 +1534,7 @@ public class PortOneApi(
+@@ -1555,7 +1553,7 @@ public class PortOneApi(
     * @param shippingAddress 배송지 주소
     * @param promotionId 해당 결제에 적용할 프로모션 아이디
     * @param bypass PG사별 추가 파라미터 ("PG사별 연동 가이드" 참고)
@@ -358,7 +358,7 @@ index 97479a6..6bf961c 100644
     */
    @JvmName("payWithBillingKeySuspend")
    public suspend fun payWithBillingKey(
-@@ -1560,7 +1558,7 @@ public class PortOneApi(
+@@ -1579,7 +1577,7 @@ public class PortOneApi(
      shippingAddress: SeparatedAddressInput? = null,
      promotionId: String? = null,
      bypass: JsonObject? = null,
@@ -367,7 +367,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.post("https://api.portone.io/payments") {
        url {
          appendPathSegments(paymentId, "billing-key")
-@@ -1608,7 +1606,7 @@ public class PortOneApi(
+@@ -1628,7 +1626,7 @@ public class PortOneApi(
      }
      val httpBody = httpResponse.body<String>()
      return try {
@@ -376,7 +376,7 @@ index 97479a6..6bf961c 100644
      }
      catch (_: Exception) {
        throw UnrecognizedException("Unrecognized API response: $httpBody")
-@@ -1640,7 +1638,7 @@ public class PortOneApi(
+@@ -1660,7 +1658,7 @@ public class PortOneApi(
      shippingAddress: SeparatedAddressInput? = null,
      promotionId: String? = null,
      bypass: JsonObject? = null,
@@ -385,7 +385,7 @@ index 97479a6..6bf961c 100644
        payWithBillingKey(paymentId, billingKey, channelKey, orderName, customer, customData, amount,
        currency, installmentMonth, useFreeInterestFromMerchant, useCardPoint, cashReceipt, country,
        noticeUrls, products, productCount, productType, shippingAddress, promotionId, bypass) }
-@@ -1681,7 +1679,7 @@ public class PortOneApi(
+@@ -1701,7 +1699,7 @@ public class PortOneApi(
     * @param productType 상품 유형
     * @param shippingAddress 배송지 주소
     * @param promotionId 해당 결제에 적용할 프로모션 아이디
@@ -394,7 +394,7 @@ index 97479a6..6bf961c 100644
     */
    @JvmName("payInstantlySuspend")
    public suspend fun payInstantly(
-@@ -1703,7 +1701,7 @@ public class PortOneApi(
+@@ -1723,7 +1721,7 @@ public class PortOneApi(
      productType: PaymentProductType? = null,
      shippingAddress: SeparatedAddressInput? = null,
      promotionId: String? = null,
@@ -403,7 +403,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.post("https://api.portone.io/payments") {
        url {
          appendPathSegments(paymentId, "instant")
-@@ -1746,7 +1744,7 @@ public class PortOneApi(
+@@ -1767,7 +1765,7 @@ public class PortOneApi(
      }
      val httpBody = httpResponse.body<String>()
      return try {
@@ -412,7 +412,7 @@ index 97479a6..6bf961c 100644
      }
      catch (_: Exception) {
        throw UnrecognizedException("Unrecognized API response: $httpBody")
-@@ -1776,7 +1774,7 @@ public class PortOneApi(
+@@ -1797,7 +1795,7 @@ public class PortOneApi(
      productType: PaymentProductType? = null,
      shippingAddress: SeparatedAddressInput? = null,
      promotionId: String? = null,
@@ -421,7 +421,7 @@ index 97479a6..6bf961c 100644
        channelKey, channelGroupId, method, orderName, isCulturalExpense, isEscrow, customer,
        customData, amount, currency, country, noticeUrls, products, productCount, productType,
        shippingAddress, promotionId) }
-@@ -1803,7 +1801,7 @@ public class PortOneApi(
+@@ -1824,7 +1822,7 @@ public class PortOneApi(
     * @param productType 상품 유형
     * @param customer 고객 정보
     * @param paidAt 결제 일자
@@ -430,7 +430,7 @@ index 97479a6..6bf961c 100644
     */
    @JvmName("issueCashReceiptSuspend")
    public suspend fun issueCashReceipt(
-@@ -1816,7 +1814,7 @@ public class PortOneApi(
+@@ -1837,7 +1835,7 @@ public class PortOneApi(
      productType: PaymentProductType? = null,
      customer: IssueCashReceiptCustomerInput,
      paidAt: Instant? = null,
@@ -439,7 +439,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.post("https://api.portone.io/cash-receipts") {
        headers {
          append(HttpHeaders.Authorization, "PortOne ${this@PortOneApi.apiSecret}")
-@@ -1849,7 +1847,7 @@ public class PortOneApi(
+@@ -1871,7 +1869,7 @@ public class PortOneApi(
      }
      val httpBody = httpResponse.body<String>()
      return try {
@@ -448,7 +448,7 @@ index 97479a6..6bf961c 100644
      }
      catch (_: Exception) {
        throw UnrecognizedException("Unrecognized API response: $httpBody")
-@@ -1870,7 +1868,7 @@ public class PortOneApi(
+@@ -1892,7 +1890,7 @@ public class PortOneApi(
      productType: PaymentProductType? = null,
      customer: IssueCashReceiptCustomerInput,
      paidAt: Instant? = null,
@@ -457,7 +457,7 @@ index 97479a6..6bf961c 100644
        channelKey, type, orderName, currency, amount, productType, customer, paidAt) }
  
    /**
-@@ -2256,11 +2254,11 @@ public class PortOneApi(
+@@ -2283,11 +2281,11 @@ public class PortOneApi(
     *
     * @param paymentId 결제 건 아이디
     * @param webhookId 웹훅 아이디 - 입력하지 않으면 결제 건의 가장 최근 웹훅 아이디가 기본 적용됩니다
@@ -471,7 +471,7 @@ index 97479a6..6bf961c 100644
      val httpResponse = client.post("https://api.portone.io/payments") {
        url {
          appendPathSegments(paymentId, "resend-webhook")
-@@ -2291,7 +2289,7 @@ public class PortOneApi(
+@@ -2319,7 +2317,7 @@ public class PortOneApi(
      }
      val httpBody = httpResponse.body<String>()
      return try {
@@ -480,7 +480,7 @@ index 97479a6..6bf961c 100644
      }
      catch (_: Exception) {
        throw UnrecognizedException("Unrecognized API response: $httpBody")
-@@ -2303,7 +2301,7 @@ public class PortOneApi(
+@@ -2331,7 +2329,7 @@ public class PortOneApi(
     */
    @JvmName("resendWebhook")
    public fun resendWebhookFuture(paymentId: String, webhookId: String? = null):

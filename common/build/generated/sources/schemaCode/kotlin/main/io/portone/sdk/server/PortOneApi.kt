@@ -205,8 +205,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
 public class PortOneApi(
-  public val apiSecret: String,
-  public val storeId: String? = null,
+  private val apiSecret: String,
+  private val storeId: String? = null,
 ) : Closeable {
   private val client: HttpClient = HttpClient(OkHttp)
 
