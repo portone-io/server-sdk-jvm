@@ -153,16 +153,6 @@ tasks.withType<DokkaTask> {
         jdkVersion = 22
         includes.from("Module.md")
         suppressGeneratedFiles = false
-        sourceLink {
-            localDirectory = projectDir
-            remoteUrl =
-                run {
-                    val githubSha = System.getenv("GITHUB_SHA")
-                    URI(
-                        "https://github.com/portone-io/server-sdk-jvm/${if (githubSha == null) "tree/main" else "blob/$githubSha"}/common",
-                    ).toURL()
-                }
-        }
     }
 }
 
