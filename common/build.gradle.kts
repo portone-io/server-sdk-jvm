@@ -152,6 +152,7 @@ tasks.withType<DokkaTask> {
     dokkaSourceSets.configureEach {
         jdkVersion = 22
         includes.from("Module.md")
+        suppressGeneratedFiles = false
         sourceLink {
             localDirectory = projectDir
             remoteUrl =
