@@ -11,6 +11,18 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Install git-filter-repo
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: git-filter-repo
+          version: "1.0"
+
+      - name: Set github username
+        run: |
+          git config --global user.name runner
+          git config --global user.email "runner@github.com"
+          git config --global init.defaultBranch main
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 

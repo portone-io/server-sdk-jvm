@@ -1,15 +1,21 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import io.portone.openapi.GenerateSchemaCodeTask
+import io.portone.openapi.GenerateVersionCodeTask
+import io.portone.openapi.PatchCodeTask
+import io.portone.openapi.SavePatchTask
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-import java.net.URI
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
 plugins {
     `java-library`
     signing
 
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.plugin.serialization)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.binary.compatibility.validator)
     alias(libs.plugins.dokka)
@@ -19,13 +25,58 @@ plugins {
 group = "io.portone"
 description = "JVM library for integrating PortOne payment infrastructure."
 
-val githubRef = System.getenv("GITHUB_REF")
 version =
-    if (githubRef != null && githubRef.startsWith("refs/tags/v")) {
-        githubRef.substring("refs/tags/v".length)
-    } else {
-        "0.0.1-SNAPSHOT"
+    run {
+        val output = ByteArrayOutputStream()
+        exec {
+            workingDir = rootProject.projectDir
+            executable = "git"
+            args = listOf("describe", "--dirty", "--tags", "--match", "v*", "--first-parent")
+            standardOutput = output
+        }
+        output.toString(StandardCharsets.UTF_8).trimEnd('\n', '\r').substring(1)
     }
+
+val generateVersionCode =
+    tasks.register<GenerateVersionCodeTask>("generateVersionCode") {
+        version = project.version.toString()
+        outputDirectory = layout.buildDirectory.dir("generated/sources/versionCode/kotlin/main")
+        outputs.upToDateWhen { false }
+    }
+
+val generateSchemaCode =
+    tasks.register<GenerateSchemaCodeTask>("generateSchemaCode") {
+        inputFile = file("../openapi/portone-v2-openapi.json")
+        outputDirectory.set(layout.buildDirectory.dir("generated/sources/schemaCode/kotlin/main"))
+    }
+
+val patchCode =
+    tasks.register<PatchCodeTask>("patchCode") {
+        originDirectory = generateSchemaCode.flatMap { it.outputDirectory }
+        patchesDirectory = file("patches")
+        outputDirectory.set(layout.buildDirectory.dir("generated/sources/patchedCode/kotlin/main"))
+        outputs.upToDateWhen { false }
+    }
+
+val savePatch =
+    tasks.register<SavePatchTask>("savePatch") {
+        inputDirectory.set(layout.buildDirectory.dir("generated/sources/patchedCode/kotlin/main"))
+        outputDirectory = file("patches")
+        outputs.upToDateWhen { false }
+    }
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir(generateVersionCode)
+            srcDir(patchCode)
+        }
+    }
+}
+
+tasks.compileKotlin {
+    dependsOn(generateSchemaCode)
+}
 
 tasks.withType<KotlinJvmCompile>().configureEach {
     jvmTargetValidationMode = JvmTargetValidationMode.ERROR
@@ -38,7 +89,12 @@ kotlin {
         jvmTarget = JvmTarget.JVM_11
         progressiveMode = true
         allWarningsAsErrors = true
-        freeCompilerArgs.addAll("-Xjdk-release=11", "-Xjsr305=strict")
+        freeCompilerArgs.addAll(
+            "-Xjdk-release=11",
+            "-Xjsr305=strict",
+            "-opt-in=kotlinx.coroutines.DelicateCoroutinesApi",
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+        )
     }
 }
 
@@ -56,11 +112,14 @@ tasks.compileJava {
     )
 }
 
-repositories {
-    mavenCentral()
+dependencies {
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
 }
 
-dependencies {
+repositories {
+    mavenCentral()
 }
 
 testing {
@@ -92,16 +151,7 @@ tasks.withType<DokkaTask> {
     dokkaSourceSets.configureEach {
         jdkVersion = 22
         includes.from("Module.md")
-        sourceLink {
-            localDirectory = projectDir
-            remoteUrl =
-                run {
-                    val githubSha = System.getenv("GITHUB_SHA")
-                    URI(
-                        "https://github.com/portone-io/server-sdk-jvm/${if (githubSha == null) "tree/main" else "blob/$githubSha"}/common",
-                    ).toURL()
-                }
-        }
+        suppressGeneratedFiles = false
     }
 }
 

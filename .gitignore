@@ -3,3 +3,11 @@
 
 # Ignore Gradle build output directory
 build
+!common/build
+common/build/**
+!common/build/generated
+common/build/generated/**
+!common/build/generated/sources
+common/build/generated/sources/**
+!common/build/generated/sources/schemaCode
+!common/build/generated/sources/schemaCode/**
