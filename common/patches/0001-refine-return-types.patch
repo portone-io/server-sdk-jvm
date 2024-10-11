@@ -1,0 +1,584 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Park Jaeon <me@finalchild.dev>
+Date: Wed, 4 Sep 2024 20:09:42 +0900
+Subject: [PATCH] refine return types
+
+
+diff --git a/io/portone/sdk/server/PortOneApi.kt b/io/portone/sdk/server/PortOneApi.kt
+index e383bf8..b6ad68b 100644
+--- a/io/portone/sdk/server/PortOneApi.kt
++++ b/io/portone/sdk/server/PortOneApi.kt
+@@ -30,6 +30,7 @@ import io.portone.sdk.server.schemas.BillingKeyNotFoundException
+ import io.portone.sdk.server.schemas.BillingKeyNotIssuedError
+ import io.portone.sdk.server.schemas.BillingKeyNotIssuedException
+ import io.portone.sdk.server.schemas.BillingKeyPaymentInput
++import io.portone.sdk.server.schemas.BillingKeyPaymentSummary
+ import io.portone.sdk.server.schemas.BillingKeySortInput
+ import io.portone.sdk.server.schemas.CancelAmountExceedsCancellableAmountError
+ import io.portone.sdk.server.schemas.CancelAmountExceedsCancellableAmountException
+@@ -54,6 +55,7 @@ import io.portone.sdk.server.schemas.CashReceiptNotFoundError
+ import io.portone.sdk.server.schemas.CashReceiptNotFoundException
+ import io.portone.sdk.server.schemas.CashReceiptNotIssuedError
+ import io.portone.sdk.server.schemas.CashReceiptNotIssuedException
++import io.portone.sdk.server.schemas.CashReceiptSummary
+ import io.portone.sdk.server.schemas.CashReceiptType
+ import io.portone.sdk.server.schemas.ChannelNotFoundError
+ import io.portone.sdk.server.schemas.ChannelNotFoundException
+@@ -112,6 +114,7 @@ import io.portone.sdk.server.schemas.IdentityVerificationOperator
+ import io.portone.sdk.server.schemas.InstantBillingKeyPaymentMethodInput
+ import io.portone.sdk.server.schemas.InstantPaymentInput
+ import io.portone.sdk.server.schemas.InstantPaymentMethodInput
++import io.portone.sdk.server.schemas.InstantPaymentSummary
+ import io.portone.sdk.server.schemas.InvalidRequestError
+ import io.portone.sdk.server.schemas.InvalidRequestException
+ import io.portone.sdk.server.schemas.IssueBillingKeyBody
+@@ -133,6 +136,7 @@ import io.portone.sdk.server.schemas.Payment
+ import io.portone.sdk.server.schemas.PaymentAlreadyCancelledError
+ import io.portone.sdk.server.schemas.PaymentAlreadyCancelledException
+ import io.portone.sdk.server.schemas.PaymentAmountInput
++import io.portone.sdk.server.schemas.PaymentCancellation
+ import io.portone.sdk.server.schemas.PaymentEscrowReceiverInput
+ import io.portone.sdk.server.schemas.PaymentEscrowSenderInput
+ import io.portone.sdk.server.schemas.PaymentFilterInput
+@@ -156,6 +160,8 @@ import io.portone.sdk.server.schemas.PaymentScheduleFilterInput
+ import io.portone.sdk.server.schemas.PaymentScheduleNotFoundError
+ import io.portone.sdk.server.schemas.PaymentScheduleNotFoundException
+ import io.portone.sdk.server.schemas.PaymentScheduleSortInput
++import io.portone.sdk.server.schemas.PaymentScheduleSummary
++import io.portone.sdk.server.schemas.PaymentWebhook
+ import io.portone.sdk.server.schemas.PgProviderError
+ import io.portone.sdk.server.schemas.PgProviderException
+ import io.portone.sdk.server.schemas.PreRegisterPaymentBody
+@@ -186,6 +192,7 @@ import io.portone.sdk.server.schemas.SumOfPartsExceedsTotalAmountError
+ import io.portone.sdk.server.schemas.SumOfPartsExceedsTotalAmountException
+ import io.portone.sdk.server.schemas.UnauthorizedError
+ import io.portone.sdk.server.schemas.UnauthorizedException
++import io.portone.sdk.server.schemas.VerifiedIdentityVerification
+ import io.portone.sdk.server.schemas.WebhookNotFoundError
+ import io.portone.sdk.server.schemas.WebhookNotFoundException
+ import java.io.Closeable
+@@ -222,16 +229,15 @@ public class PortOneApi(
+    * 주어진 아이디에 대응되는 본인인증 내역을 조회합니다.
+    *
+    * @throws ForbiddenError 요청이 거절된 경우
+-   * @throws IdentityVerificationNotFoundError 요청된 본인인증 건이 존재하지 않는 경우
+    * @throws InvalidRequestError 요청된 입력 정보가 유효하지 않은 경우 - 허가되지 않은 값, 올바르지 않은 형식의 요청 등이 모두 해당됩니다.
+    * @throws UnauthorizedError 인증 정보가 올바르지 않은 경우
+    * @throws UnrecognizedException API 응답이 알 수 없는 형식인 경우
+    *
+    * @param identityVerificationId 조회할 본인인증 아이디
+-   * @return 성공 응답으로 본인 인증 객체를 반환합니다.
++   * @return 성공 응답으로 본인 인증 객체 또는 null을 반환합니다.
+    */
+   @JvmName("getIdentityVerificationSuspend")
+-  public suspend fun getIdentityVerification(identityVerificationId: String): IdentityVerification {
++  public suspend fun getIdentityVerification(identityVerificationId: String): IdentityVerification? {
+     val httpResponse = client.get("https://api.portone.io/identity-verifications") {
+       url {
+         appendPathSegments(identityVerificationId)
+@@ -254,8 +260,7 @@ public class PortOneApi(
+       }
+       when (httpBodyDecoded) {
+         is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
+-        is IdentityVerificationNotFoundError -> throw IdentityVerificationNotFoundException(message
+-            = httpBodyDecoded.message)
++        is IdentityVerificationNotFoundError -> return null
+         is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
+         is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
+       }
+@@ -274,7 +279,7 @@ public class PortOneApi(
+    */
+   @JvmName("getIdentityVerification")
+   public fun getIdentityVerificationFuture(identityVerificationId: String):
+-      CompletableFuture<IdentityVerification> = GlobalScope.future {
++      CompletableFuture<IdentityVerification?> = GlobalScope.future {
+       getIdentityVerification(identityVerificationId) }
+ 
+   /**
+@@ -380,11 +385,11 @@ public class PortOneApi(
+    *
+    * @param identityVerificationId 본인인증 아이디
+    * @param otp OTP (One-Time Password) - SMS 방식에서만 사용됩니다.
+-   * @return 성공 응답
++   * @return 완료된 본인인증 내역
+    */
+   @JvmName("confirmIdentityVerificationSuspend")
+   public suspend fun confirmIdentityVerification(identityVerificationId: String, otp: String? =
+-      null): ConfirmIdentityVerificationResponse {
++      null): VerifiedIdentityVerification {
+     val httpResponse = client.post("https://api.portone.io/identity-verifications") {
+       url {
+         appendPathSegments(identityVerificationId, "confirm")
+@@ -422,7 +427,7 @@ public class PortOneApi(
+     }
+     val httpBody = httpResponse.body<String>()
+     return try {
+-      this.json.decodeFromString<ConfirmIdentityVerificationResponse>(httpBody)
++      this.json.decodeFromString<ConfirmIdentityVerificationResponse>(httpBody).identityVerification
+     }
+     catch (_: Exception) {
+       throw UnrecognizedException("Unrecognized API response: $httpBody")
+@@ -434,7 +439,7 @@ public class PortOneApi(
+    */
+   @JvmName("confirmIdentityVerification")
+   public fun confirmIdentityVerificationFuture(identityVerificationId: String, otp: String? = null):
+-      CompletableFuture<ConfirmIdentityVerificationResponse> = GlobalScope.future {
++      CompletableFuture<VerifiedIdentityVerification> = GlobalScope.future {
+       confirmIdentityVerification(identityVerificationId, otp) }
+ 
+   /**
+@@ -570,17 +575,16 @@ public class PortOneApi(
+    *
+    * 주어진 빌링키에 대응되는 빌링키 정보를 조회합니다.
+    *
+-   * @throws BillingKeyNotFoundError 빌링키가 존재하지 않는 경우
+    * @throws ForbiddenError 요청이 거절된 경우
+    * @throws InvalidRequestError 요청된 입력 정보가 유효하지 않은 경우 - 허가되지 않은 값, 올바르지 않은 형식의 요청 등이 모두 해당됩니다.
+    * @throws UnauthorizedError 인증 정보가 올바르지 않은 경우
+    * @throws UnrecognizedException API 응답이 알 수 없는 형식인 경우
+    *
+    * @param billingKey 조회할 빌링키
+-   * @return 성공 응답으로 빌링키 정보를 반환합니다.
++   * @return 성공 응답으로 빌링키 정보 또는 null을 반환합니다.
+    */
+   @JvmName("getBillingKeyInfoSuspend")
+-  public suspend fun getBillingKeyInfo(billingKey: String): BillingKeyInfo {
++  public suspend fun getBillingKeyInfo(billingKey: String): BillingKeyInfo? {
+     val httpResponse = client.get("https://api.portone.io/billing-keys") {
+       url {
+         appendPathSegments(billingKey)
+@@ -602,8 +606,7 @@ public class PortOneApi(
+         throw UnrecognizedException("Unrecognized API error: $httpBody")
+       }
+       when (httpBodyDecoded) {
+-        is BillingKeyNotFoundError -> throw BillingKeyNotFoundException(message =
+-            httpBodyDecoded.message)
++        is BillingKeyNotFoundError -> return null
+         is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
+         is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
+         is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
+@@ -622,7 +625,7 @@ public class PortOneApi(
+    * @suppress
+    */
+   @JvmName("getBillingKeyInfo")
+-  public fun getBillingKeyInfoFuture(billingKey: String): CompletableFuture<BillingKeyInfo> =
++  public fun getBillingKeyInfoFuture(billingKey: String): CompletableFuture<BillingKeyInfo?> =
+       GlobalScope.future { getBillingKeyInfo(billingKey) }
+ 
+   /**
+@@ -863,17 +866,16 @@ public class PortOneApi(
+    *
+    * 주어진 결제 아이디에 대응되는 현금 영수증 내역을 조회합니다.
+    *
+-   * @throws CashReceiptNotFoundError 현금영수증이 존재하지 않는 경우
+    * @throws ForbiddenError 요청이 거절된 경우
+    * @throws InvalidRequestError 요청된 입력 정보가 유효하지 않은 경우 - 허가되지 않은 값, 올바르지 않은 형식의 요청 등이 모두 해당됩니다.
+    * @throws UnauthorizedError 인증 정보가 올바르지 않은 경우
+    * @throws UnrecognizedException API 응답이 알 수 없는 형식인 경우
+    *
+    * @param paymentId 결제 건 아이디
+-   * @return 성공 응답으로 현금 영수증 객체를 반환합니다.
++   * @return 성공 응답으로 현금 영수증 객체 또는 null을 반환합니다.
+    */
+   @JvmName("getCashReceiptByPaymentIdSuspend")
+-  public suspend fun getCashReceiptByPaymentId(paymentId: String): CashReceipt {
++  public suspend fun getCashReceiptByPaymentId(paymentId: String): CashReceipt? {
+     val httpResponse = client.get("https://api.portone.io/payments") {
+       url {
+         appendPathSegments(paymentId, "cash-receipt")
+@@ -895,8 +897,7 @@ public class PortOneApi(
+         throw UnrecognizedException("Unrecognized API error: $httpBody")
+       }
+       when (httpBodyDecoded) {
+-        is CashReceiptNotFoundError -> throw CashReceiptNotFoundException(message =
+-            httpBodyDecoded.message)
++        is CashReceiptNotFoundError -> return null
+         is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
+         is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
+         is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
+@@ -915,7 +916,7 @@ public class PortOneApi(
+    * @suppress
+    */
+   @JvmName("getCashReceiptByPaymentId")
+-  public fun getCashReceiptByPaymentIdFuture(paymentId: String): CompletableFuture<CashReceipt> =
++  public fun getCashReceiptByPaymentIdFuture(paymentId: String): CompletableFuture<CashReceipt?> =
+       GlobalScope.future { getCashReceiptByPaymentId(paymentId) }
+ 
+   /**
+@@ -925,15 +926,14 @@ public class PortOneApi(
+    *
+    * @throws ForbiddenError 요청이 거절된 경우
+    * @throws InvalidRequestError 요청된 입력 정보가 유효하지 않은 경우 - 허가되지 않은 값, 올바르지 않은 형식의 요청 등이 모두 해당됩니다.
+-   * @throws PaymentNotFoundError 결제 건이 존재하지 않는 경우
+    * @throws UnauthorizedError 인증 정보가 올바르지 않은 경우
+    * @throws UnrecognizedException API 응답이 알 수 없는 형식인 경우
+    *
+    * @param paymentId 조회할 결제 아이디
+-   * @return 성공 응답으로 결제 건 객체를 반환합니다.
++   * @return 성공 응답으로 결제 건 객체 또는 null을 반환합니다.
+    */
+   @JvmName("getPaymentSuspend")
+-  public suspend fun getPayment(paymentId: String): Payment {
++  public suspend fun getPayment(paymentId: String): Payment? {
+     val httpResponse = client.get("https://api.portone.io/payments") {
+       url {
+         appendPathSegments(paymentId)
+@@ -957,7 +957,7 @@ public class PortOneApi(
+       when (httpBodyDecoded) {
+         is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
+         is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
+-        is PaymentNotFoundError -> throw PaymentNotFoundException(message = httpBodyDecoded.message)
++        is PaymentNotFoundError -> return null
+         is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
+       }
+     }
+@@ -974,7 +974,7 @@ public class PortOneApi(
+    * @suppress
+    */
+   @JvmName("getPayment")
+-  public fun getPaymentFuture(paymentId: String): CompletableFuture<Payment> = GlobalScope.future {
++  public fun getPaymentFuture(paymentId: String): CompletableFuture<Payment?> = GlobalScope.future {
+       getPayment(paymentId) }
+ 
+   /**
+@@ -1115,15 +1115,14 @@ public class PortOneApi(
+    *
+    * @throws ForbiddenError 요청이 거절된 경우
+    * @throws InvalidRequestError 요청된 입력 정보가 유효하지 않은 경우 - 허가되지 않은 값, 올바르지 않은 형식의 요청 등이 모두 해당됩니다.
+-   * @throws PaymentScheduleNotFoundError 결제 예약건이 존재하지 않는 경우
+    * @throws UnauthorizedError 인증 정보가 올바르지 않은 경우
+    * @throws UnrecognizedException API 응답이 알 수 없는 형식인 경우
+    *
+    * @param paymentScheduleId 조회할 결제 예약 건 아이디
+-   * @return 성공 응답으로 결제 예약 건 객체를 반환합니다.
++   * @return 성공 응답으로 결제 예약 건 객체 또는 null을 반환합니다.
+    */
+   @JvmName("getPaymentScheduleSuspend")
+-  public suspend fun getPaymentSchedule(paymentScheduleId: String): PaymentSchedule {
++  public suspend fun getPaymentSchedule(paymentScheduleId: String): PaymentSchedule? {
+     val httpResponse = client.get("https://api.portone.io/payment-schedules") {
+       url {
+         appendPathSegments(paymentScheduleId)
+@@ -1147,8 +1146,7 @@ public class PortOneApi(
+       when (httpBodyDecoded) {
+         is ForbiddenError -> throw ForbiddenException(message = httpBodyDecoded.message)
+         is InvalidRequestError -> throw InvalidRequestException(message = httpBodyDecoded.message)
+-        is PaymentScheduleNotFoundError -> throw PaymentScheduleNotFoundException(message =
+-            httpBodyDecoded.message)
++        is PaymentScheduleNotFoundError -> return null
+         is UnauthorizedError -> throw UnauthorizedException(message = httpBodyDecoded.message)
+       }
+     }
+@@ -1165,7 +1163,7 @@ public class PortOneApi(
+    * @suppress
+    */
+   @JvmName("getPaymentSchedule")
+-  public fun getPaymentScheduleFuture(paymentScheduleId: String): CompletableFuture<PaymentSchedule>
++  public fun getPaymentScheduleFuture(paymentScheduleId: String): CompletableFuture<PaymentSchedule?>
+       = GlobalScope.future { getPaymentSchedule(paymentScheduleId) }
+ 
+   /**
+@@ -1332,14 +1330,14 @@ public class PortOneApi(
+    * @param paymentId 결제 건 아이디
+    * @param payment 빌링키 결제 입력 정보
+    * @param timeToPay 결제 예정 시점
+-   * @return 성공 응답
++   * @return 결제 예약 건
+    */
+   @JvmName("createPaymentScheduleSuspend")
+   public suspend fun createPaymentSchedule(
+     paymentId: String,
+     payment: BillingKeyPaymentInput,
+     timeToPay: Instant,
+-  ): CreatePaymentScheduleResponse {
++  ): PaymentScheduleSummary {
+     val httpResponse = client.post("https://api.portone.io/payments") {
+       url {
+         appendPathSegments(paymentId, "schedule")
+@@ -1379,7 +1377,7 @@ public class PortOneApi(
+     }
+     val httpBody = httpResponse.body<String>()
+     return try {
+-      this.json.decodeFromString<CreatePaymentScheduleResponse>(httpBody)
++      this.json.decodeFromString<CreatePaymentScheduleResponse>(httpBody).schedule
+     }
+     catch (_: Exception) {
+       throw UnrecognizedException("Unrecognized API response: $httpBody")
+@@ -1394,7 +1392,7 @@ public class PortOneApi(
+     paymentId: String,
+     payment: BillingKeyPaymentInput,
+     timeToPay: Instant,
+-  ): CompletableFuture<CreatePaymentScheduleResponse> = GlobalScope.future {
++  ): CompletableFuture<PaymentScheduleSummary> = GlobalScope.future {
+       createPaymentSchedule(paymentId, payment, timeToPay) }
+ 
+   /**
+@@ -1427,7 +1425,7 @@ public class PortOneApi(
+    * @param currentCancellableAmount 결제 건의 취소 가능 잔액 - 본 취소 요청 이전의 취소 가능 잔액으로써, 값을 입력하면 잔액이 일치하는 경우에만
+    * 취소가 진행됩니다. 값을 입력하지 않으면 별도의 검증 처리를 수행하지 않습니다.
+    * @param refundAccount 환불 계좌 - 계좌 환불일 경우 입력합니다. 계좌 환불이 필요한 경우는 가상계좌 환불, 휴대폰 익월 환불 등이 있습니다.
+-   * @return 성공 응답
++   * @return 결제 취소 내역
+    */
+   @JvmName("cancelPaymentSuspend")
+   public suspend fun cancelPayment(
+@@ -1439,7 +1437,7 @@ public class PortOneApi(
+     requester: CancelRequester? = null,
+     currentCancellableAmount: Long? = null,
+     refundAccount: CancelPaymentBodyRefundAccount? = null,
+-  ): CancelPaymentResponse {
++  ): PaymentCancellation {
+     val httpResponse = client.post("https://api.portone.io/payments") {
+       url {
+         appendPathSegments(paymentId, "cancel")
+@@ -1491,7 +1489,7 @@ public class PortOneApi(
+     }
+     val httpBody = httpResponse.body<String>()
+     return try {
+-      this.json.decodeFromString<CancelPaymentResponse>(httpBody)
++      this.json.decodeFromString<CancelPaymentResponse>(httpBody).cancellation
+     }
+     catch (_: Exception) {
+       throw UnrecognizedException("Unrecognized API response: $httpBody")
+@@ -1511,7 +1509,7 @@ public class PortOneApi(
+     requester: CancelRequester? = null,
+     currentCancellableAmount: Long? = null,
+     refundAccount: CancelPaymentBodyRefundAccount? = null,
+-  ): CompletableFuture<CancelPaymentResponse> = GlobalScope.future { cancelPayment(paymentId,
++  ): CompletableFuture<PaymentCancellation> = GlobalScope.future { cancelPayment(paymentId,
+       amount, taxFreeAmount, vatAmount, reason, requester, currentCancellableAmount, refundAccount)
+       }
+ 
+@@ -1555,7 +1553,7 @@ public class PortOneApi(
+    * @param shippingAddress 배송지 주소
+    * @param promotionId 해당 결제에 적용할 프로모션 아이디
+    * @param bypass PG사별 추가 파라미터 ("PG사별 연동 가이드" 참고)
+-   * @return 성공 응답
++   * @return 결제 건 요약 정보
+    */
+   @JvmName("payWithBillingKeySuspend")
+   public suspend fun payWithBillingKey(
+@@ -1579,7 +1577,7 @@ public class PortOneApi(
+     shippingAddress: SeparatedAddressInput? = null,
+     promotionId: String? = null,
+     bypass: JsonObject? = null,
+-  ): PayWithBillingKeyResponse {
++  ): BillingKeyPaymentSummary {
+     val httpResponse = client.post("https://api.portone.io/payments") {
+       url {
+         appendPathSegments(paymentId, "billing-key")
+@@ -1628,7 +1626,7 @@ public class PortOneApi(
+     }
+     val httpBody = httpResponse.body<String>()
+     return try {
+-      this.json.decodeFromString<PayWithBillingKeyResponse>(httpBody)
++      this.json.decodeFromString<PayWithBillingKeyResponse>(httpBody).payment
+     }
+     catch (_: Exception) {
+       throw UnrecognizedException("Unrecognized API response: $httpBody")
+@@ -1660,7 +1658,7 @@ public class PortOneApi(
+     shippingAddress: SeparatedAddressInput? = null,
+     promotionId: String? = null,
+     bypass: JsonObject? = null,
+-  ): CompletableFuture<PayWithBillingKeyResponse> = GlobalScope.future {
++  ): CompletableFuture<BillingKeyPaymentSummary> = GlobalScope.future {
+       payWithBillingKey(paymentId, billingKey, channelKey, orderName, customer, customData, amount,
+       currency, installmentMonth, useFreeInterestFromMerchant, useCardPoint, cashReceipt, country,
+       noticeUrls, products, productCount, productType, shippingAddress, promotionId, bypass) }
+@@ -1701,7 +1699,7 @@ public class PortOneApi(
+    * @param productType 상품 유형
+    * @param shippingAddress 배송지 주소
+    * @param promotionId 해당 결제에 적용할 프로모션 아이디
+-   * @return 성공 응답
++   * @return 결제 건 요약 정보
+    */
+   @JvmName("payInstantlySuspend")
+   public suspend fun payInstantly(
+@@ -1723,7 +1721,7 @@ public class PortOneApi(
+     productType: PaymentProductType? = null,
+     shippingAddress: SeparatedAddressInput? = null,
+     promotionId: String? = null,
+-  ): PayInstantlyResponse {
++  ): InstantPaymentSummary {
+     val httpResponse = client.post("https://api.portone.io/payments") {
+       url {
+         appendPathSegments(paymentId, "instant")
+@@ -1767,7 +1765,7 @@ public class PortOneApi(
+     }
+     val httpBody = httpResponse.body<String>()
+     return try {
+-      this.json.decodeFromString<PayInstantlyResponse>(httpBody)
++      this.json.decodeFromString<PayInstantlyResponse>(httpBody).payment
+     }
+     catch (_: Exception) {
+       throw UnrecognizedException("Unrecognized API response: $httpBody")
+@@ -1797,7 +1795,7 @@ public class PortOneApi(
+     productType: PaymentProductType? = null,
+     shippingAddress: SeparatedAddressInput? = null,
+     promotionId: String? = null,
+-  ): CompletableFuture<PayInstantlyResponse> = GlobalScope.future { payInstantly(paymentId,
++  ): CompletableFuture<InstantPaymentSummary> = GlobalScope.future { payInstantly(paymentId,
+       channelKey, channelGroupId, method, orderName, isCulturalExpense, isEscrow, customer,
+       customData, amount, currency, country, noticeUrls, products, productCount, productType,
+       shippingAddress, promotionId) }
+@@ -1824,7 +1822,7 @@ public class PortOneApi(
+    * @param productType 상품 유형
+    * @param customer 고객 정보
+    * @param paidAt 결제 일자
+-   * @return 성공 응답
++   * @return 현금 영수증 정보
+    */
+   @JvmName("issueCashReceiptSuspend")
+   public suspend fun issueCashReceipt(
+@@ -1837,7 +1835,7 @@ public class PortOneApi(
+     productType: PaymentProductType? = null,
+     customer: IssueCashReceiptCustomerInput,
+     paidAt: Instant? = null,
+-  ): IssueCashReceiptResponse {
++  ): CashReceiptSummary {
+     val httpResponse = client.post("https://api.portone.io/cash-receipts") {
+       headers {
+         append(HttpHeaders.Authorization, "PortOne ${this@PortOneApi.apiSecret}")
+@@ -1871,7 +1869,7 @@ public class PortOneApi(
+     }
+     val httpBody = httpResponse.body<String>()
+     return try {
+-      this.json.decodeFromString<IssueCashReceiptResponse>(httpBody)
++      this.json.decodeFromString<IssueCashReceiptResponse>(httpBody).cashReceipt
+     }
+     catch (_: Exception) {
+       throw UnrecognizedException("Unrecognized API response: $httpBody")
+@@ -1892,7 +1890,7 @@ public class PortOneApi(
+     productType: PaymentProductType? = null,
+     customer: IssueCashReceiptCustomerInput,
+     paidAt: Instant? = null,
+-  ): CompletableFuture<IssueCashReceiptResponse> = GlobalScope.future { issueCashReceipt(paymentId,
++  ): CompletableFuture<CashReceiptSummary> = GlobalScope.future { issueCashReceipt(paymentId,
+       channelKey, type, orderName, currency, amount, productType, customer, paidAt) }
+ 
+   /**
+@@ -2283,11 +2281,11 @@ public class PortOneApi(
+    *
+    * @param paymentId 결제 건 아이디
+    * @param webhookId 웹훅 아이디 - 입력하지 않으면 결제 건의 가장 최근 웹훅 아이디가 기본 적용됩니다
+-   * @return 성공 응답
++   * @return 재발송 웹훅 정보
+    */
+   @JvmName("resendWebhookSuspend")
+   public suspend fun resendWebhook(paymentId: String, webhookId: String? = null):
+-      ResendWebhookResponse {
++      PaymentWebhook {
+     val httpResponse = client.post("https://api.portone.io/payments") {
+       url {
+         appendPathSegments(paymentId, "resend-webhook")
+@@ -2319,7 +2317,7 @@ public class PortOneApi(
+     }
+     val httpBody = httpResponse.body<String>()
+     return try {
+-      this.json.decodeFromString<ResendWebhookResponse>(httpBody)
++      this.json.decodeFromString<ResendWebhookResponse>(httpBody).webhook
+     }
+     catch (_: Exception) {
+       throw UnrecognizedException("Unrecognized API response: $httpBody")
+@@ -2331,7 +2329,7 @@ public class PortOneApi(
+    */
+   @JvmName("resendWebhook")
+   public fun resendWebhookFuture(paymentId: String, webhookId: String? = null):
+-      CompletableFuture<ResendWebhookResponse> = GlobalScope.future { resendWebhook(paymentId,
++      CompletableFuture<PaymentWebhook> = GlobalScope.future { resendWebhook(paymentId,
+       webhookId) }
+ 
+   /**
+diff --git a/io/portone/sdk/server/schemas/CancelPaymentResponse.kt b/io/portone/sdk/server/schemas/CancelPaymentResponse.kt
+index a7798d7..174a401 100644
+--- a/io/portone/sdk/server/schemas/CancelPaymentResponse.kt
++++ b/io/portone/sdk/server/schemas/CancelPaymentResponse.kt
+@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
+  * 결제 취소 성공 응답
+  */
+ @Serializable
+-public data class CancelPaymentResponse(
++internal data class CancelPaymentResponse(
+   /**
+    * 결체 취소 내역
+    */
+diff --git a/io/portone/sdk/server/schemas/ConfirmIdentityVerificationResponse.kt b/io/portone/sdk/server/schemas/ConfirmIdentityVerificationResponse.kt
+index e4ecdf2..6140b8e 100644
+--- a/io/portone/sdk/server/schemas/ConfirmIdentityVerificationResponse.kt
++++ b/io/portone/sdk/server/schemas/ConfirmIdentityVerificationResponse.kt
+@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
+  * 본인인증 확인 성공 응답
+  */
+ @Serializable
+-public data class ConfirmIdentityVerificationResponse(
++internal data class ConfirmIdentityVerificationResponse(
+   /**
+    * 완료된 본인인증 내역
+    */
+diff --git a/io/portone/sdk/server/schemas/CreatePaymentScheduleResponse.kt b/io/portone/sdk/server/schemas/CreatePaymentScheduleResponse.kt
+index ac7d318..fdd9851 100644
+--- a/io/portone/sdk/server/schemas/CreatePaymentScheduleResponse.kt
++++ b/io/portone/sdk/server/schemas/CreatePaymentScheduleResponse.kt
+@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
+  * 결제 예약 성공 응답
+  */
+ @Serializable
+-public data class CreatePaymentScheduleResponse(
++internal data class CreatePaymentScheduleResponse(
+   /**
+    * 결제 예약 건
+    */
+diff --git a/io/portone/sdk/server/schemas/IssueCashReceiptResponse.kt b/io/portone/sdk/server/schemas/IssueCashReceiptResponse.kt
+index 664767c..11a2eb9 100644
+--- a/io/portone/sdk/server/schemas/IssueCashReceiptResponse.kt
++++ b/io/portone/sdk/server/schemas/IssueCashReceiptResponse.kt
+@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
+  * 현금 영수증 발급 성공 응답
+  */
+ @Serializable
+-public data class IssueCashReceiptResponse(
++internal data class IssueCashReceiptResponse(
+   public val cashReceipt: CashReceiptSummary,
+ )
+diff --git a/io/portone/sdk/server/schemas/PayInstantlyResponse.kt b/io/portone/sdk/server/schemas/PayInstantlyResponse.kt
+index d4a4959..91d2c69 100644
+--- a/io/portone/sdk/server/schemas/PayInstantlyResponse.kt
++++ b/io/portone/sdk/server/schemas/PayInstantlyResponse.kt
+@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
+  * 수기 결제 성공 응답
+  */
+ @Serializable
+-public data class PayInstantlyResponse(
++internal data class PayInstantlyResponse(
+   /**
+    * 결제 건 요약 정보
+    */
+diff --git a/io/portone/sdk/server/schemas/PayWithBillingKeyResponse.kt b/io/portone/sdk/server/schemas/PayWithBillingKeyResponse.kt
+index de50e62..afb69a9 100644
+--- a/io/portone/sdk/server/schemas/PayWithBillingKeyResponse.kt
++++ b/io/portone/sdk/server/schemas/PayWithBillingKeyResponse.kt
+@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
+  * 빌링키 결제 성공 응답
+  */
+ @Serializable
+-public data class PayWithBillingKeyResponse(
++internal data class PayWithBillingKeyResponse(
+   /**
+    * 결제 건 요약 정보
+    */
+diff --git a/io/portone/sdk/server/schemas/ResendWebhookResponse.kt b/io/portone/sdk/server/schemas/ResendWebhookResponse.kt
+index fb21106..942990a 100644
+--- a/io/portone/sdk/server/schemas/ResendWebhookResponse.kt
++++ b/io/portone/sdk/server/schemas/ResendWebhookResponse.kt
+@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
+  * 웹훅 재발송 응답 정보
+  */
+ @Serializable
+-public data class ResendWebhookResponse(
++internal data class ResendWebhookResponse(
+   /**
+    * 재발송 웹훅 정보
+    */
+-- 
+2.45.2.windows.1
+
